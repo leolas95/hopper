@@ -1,0 +1,80 @@
+Program:
+    declarations *= Declaration
+;
+
+Declaration:
+    ( DetectActivity
+    | TrackObject
+    | OnStatement
+    | VariableDeclaration
+    | WhenStatement
+    )
+;
+
+DetectActivity:
+    "detect" "activity" activity_name=STRING ("in" zone=ZoneValue)? ("from" camera+=CameraValue[','])?
+;
+
+CameraValue:
+    CameraDeclaration | ID
+;
+
+TrackObject:
+    "track" ("min" "=" min=INT)? ("max" "=" max=INT)? target = TargetValue target_properties=PropertyDeclaration? ("in" zone=ZoneValue)?
+;
+
+ZoneValue:
+   ZoneDeclaration | ID
+;
+
+TargetValue:
+    TargetDeclaration | ID
+;
+
+VariableDeclaration:
+    name=ID "=" value=VariableValue
+;
+
+VariableValue:
+    (CameraDeclaration | TargetDeclaration | ZoneDeclaration)
+;
+
+CameraDeclaration:
+    "camera" ("ip" | "name") ":" value=STRING
+;
+
+TargetDeclaration:
+    target_name=STRING properties=PropertyDeclaration?
+;
+
+PropertyDeclaration:
+    "with" properties+=Property[',']
+;
+
+Property:
+    property_value=STRING property_name=STRING
+;
+
+ZoneDeclaration:
+    zone=STRING
+;
+
+OnStatement:
+    "on" "activity" activity_name=STRING "do" action=ID "(" ")"
+;
+
+WhenStatement:
+    "when" bool_expr=BooleanExpression "do" action=ID "(" ")"
+;
+
+BooleanExpression:
+    lhoperand=BooleanOperand operator=RelationalOperator rhoperand=BooleanOperand
+;
+
+BooleanOperand:
+    (INT | ID)
+;
+
+RelationalOperator:
+    ">=" | "<=" | ">" | "<" | "==" | "!="
+;

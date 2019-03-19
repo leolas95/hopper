@@ -1,0 +1,5 @@
+{
+    "python.linting.pylintEnabled": true,
+    "python.formatting.provider": "autopep8",
+    "python.formatting.autopep8Path": "/home/leonardo/cvenv/bin/autopep8"
+}
