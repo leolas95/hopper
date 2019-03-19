@@ -20,7 +20,13 @@ CameraValue:
 ;
 
 TrackObject:
-    "track" ("min" "=" min=INT)? ("max" "=" max=INT)? target = TargetValue target_properties=PropertyDeclaration? ("in" zone=ZoneValue)? ("incr" counter=ID)?
+    "track"
+        ("min" "=" min=INT)?
+        ("max" "=" max=INT)?
+        target = TargetValue
+        target_properties=PropertyDeclaration?
+        ("in" zone=ZoneValue)?
+        ("incr" counter=ID)?
 ;
 
 ZoneValue:
@@ -64,7 +70,7 @@ OnStatement:
 ;
 
 WhenStatement:
-    "when" bool_expr=BooleanExpression "do" action=ID "(" ")"
+    "when" bool_expr=BooleanExpression "do" action=ID "(" arguments*=STRING[","] ")"
 ;
 
 BooleanExpression:

@@ -11,4 +11,4 @@ track min = 3 "vehicle" with "blue" "color" in zona incr vehicle_counter
 
 on activity "running" do alert()
 
-when vehicle_counter > vehicle_threshold do alert()
+when vehicle_counter > vehicle_threshold do alert("Esto es una alerta")
