@@ -1,5 +1,4 @@
 from textx import metamodel_from_file
-from pprint import pprint
 
 metamodel = metamodel_from_file('model.tx')
 model = metamodel.model_from_file('test.dsl')
@@ -91,4 +90,8 @@ output = {
     'conditions': conditions
 }
 
-pprint(output)
+from backend import json_generator, yaml_generator, xml_generator
+
+json_generator.generate(output, 'a.json')
+yaml_generator.generate(output, 'a.yaml')
+xml_generator.generate(output, 'a.xml')
