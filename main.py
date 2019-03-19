@@ -1,4 +1,5 @@
 from textx import metamodel_from_file
+from pprint import pprint
 
 metamodel = metamodel_from_file('model.tx')
 model = metamodel.model_from_file('test.dsl')
@@ -6,8 +7,9 @@ model = metamodel.model_from_file('test.dsl')
 # Symbol table to store the name and value of identifiers
 symtab = {}
 activities = []
-targets = []
-
+targets = {}
+conditions = []
+counters = []
 
 def handle_declaration_type(declaration, declarationType):
     # When variable declaration is found, store it in the symtab
@@ -31,8 +33,10 @@ def handle_declaration_type(declaration, declarationType):
 
     if declarationType == 'TrackObject':
         if type(declaration.target).__name__ != 'TargetDeclaration':
+            # If not a declaration literal, is an ID
             target = symtab[declaration.target]
         else:
+            # Target declaration literal
             target = declaration.target
 
         # Get properties of object to track
@@ -40,32 +44,51 @@ def handle_declaration_type(declaration, declarationType):
         for prop in target.properties.properties:
             target_properties[prop.property_name] = prop.property_value
 
-        targets.append({target.target_name: {'properties': target_properties}})
+        targets[target.target_name] = {
+            'min': declaration.min,
+            'max': declaration.max,
+            'counter': declaration.counter,
+            'properties': target_properties
+        }
+        counters.append(declaration.counter)
 
     if declarationType == 'WhenStatement':
-        # Verifica que si los operandos son identificadores, esten declarados y sean de tipos compatibles
-        # If operands are identifiers, check that they are defined
+        # Find left and right operands, and operator
+        # Check that the operands are declared variables, or counters
         if type(declaration.bool_expr.lhoperand).__name__ == 'str':
-            # Verifica que este declarado
-            if declaration.bool_expr.lhoperand not in symtab:
-                print('ERROR: UNDEFINED VARIABLE:',
-                      declaration.bool_expr.lhoperand)
+            if declaration.bool_expr.lhoperand not in counters and declaration.bool_expr.lhoperand not in symtab:
+                print('ERROR: UNDECLARED IDENTIFIER:', declaration.bool_expr.lhoperand)
                 exit(1)
 
-            # TODO: Check that they are of compatible types
-            if type(symtab[declaration.bool_expr.lhoperand]).__name__ != 'int':
-                print('TODO: Check compatible types')
+        lhoperand = declaration.bool_expr.lhoperand
+        operator = declaration.bool_expr.operator
 
         if type(declaration.bool_expr.rhoperand).__name__ == 'str':
-            if declaration.bool_expr.rhoperand not in symtab:
-                print('ERROR: UNDEFINED VARIABLE:',
-                      declaration.bool_expr.rhoperand)
+            if declaration.bool_expr.rhoperand not in counters and declaration.bool_expr.rhoperand not in symtab:
+                print('ERROR: UNDECLARED IDENTIFIER:', declaration.bool_expr.rhoperand)
                 exit(1)
+        rhoperand = declaration.bool_expr.rhoperand
 
+        conditions.append({
+            'condition': {
+                'left_operand': lhoperand,
+                'operator': operator,
+                'right_operand': rhoperand
+            },
+            'action': declaration.action
+        })
+        
+for decl in model.declarations:
+    handle_declaration_type(decl, type(decl).__name__)
 
-for declaration in model.declarations:
-    handle_declaration_type(declaration, type(declaration).__name__)
+# print('Symbol table:', symtab, '\n')
+# print('Activities:', activities, '\n')
+# print('Targets:', targets, '\n')
+# print('Conditions:', conditions)
 
-print('Symbol table:', symtab, '\n')
-print('Activities:', activities, '\n')
-print('Targets:', targets, '\n')
+output = {
+    'targets': targets,
+    'conditions': conditions
+}
+
+pprint(output)

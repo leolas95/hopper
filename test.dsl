@@ -5,9 +5,9 @@ zona = "lobby"
 detect activity "running" in zona from cam1
 detect activity "talking"
 
-track suspect in "room"
-track "vehicle" with "blue" "color" in zona
+track suspect in "room" 
+track min = 3 "vehicle" with "blue" "color" in zona incr vehicle_counter
 
 on activity "running" do alert()
 
-when cam1 > 1 do f()
+when 2 > 6 do f()

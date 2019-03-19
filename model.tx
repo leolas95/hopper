@@ -20,7 +20,7 @@ CameraValue:
 ;
 
 TrackObject:
-    "track" ("min" "=" min=INT)? ("max" "=" max=INT)? target = TargetValue target_properties=PropertyDeclaration? ("in" zone=ZoneValue)?
+    "track" ("min" "=" min=INT)? ("max" "=" max=INT)? target = TargetValue target_properties=PropertyDeclaration? ("in" zone=ZoneValue)? ("incr" counter=ID)?
 ;
 
 ZoneValue:
@@ -36,7 +36,7 @@ VariableDeclaration:
 ;
 
 VariableValue:
-    (CameraDeclaration | TargetDeclaration | ZoneDeclaration)
+    (CameraDeclaration | TargetDeclaration | ZoneDeclaration | INT)
 ;
 
 CameraDeclaration:
