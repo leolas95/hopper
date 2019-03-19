@@ -1,4 +1,6 @@
+from backend import json_generator, yaml_generator, xml_generator
 from textx import metamodel_from_file
+import argparse
 
 metamodel = metamodel_from_file('model.tx')
 model = metamodel.model_from_file('test.dsl')
@@ -9,6 +11,13 @@ activities = []
 targets = {}
 conditions = []
 counters = []
+
+ap = argparse.ArgumentParser()
+ap.add_argument("-o", "--output", type=str, default="config",
+                help="Name of the output generated config file, without the extension")
+ap.add_argument("-f", "--format", type=str, default="json",
+                help="Format of the generated file. Valid values are: json, yaml, xml")
+arguments = vars(ap.parse_args())
 
 def handle_declaration_type(declaration, declarationType):
     # When variable declaration is found, store it in the symtab
@@ -43,20 +52,28 @@ def handle_declaration_type(declaration, declarationType):
         for prop in target.properties.properties:
             target_properties[prop.property_name] = prop.property_value
 
-        targets[target.target_name] = {
-            'min': declaration.min,
-            'max': declaration.max,
-            'counter': declaration.counter,
-            'properties': target_properties
-        }
-        counters.append(declaration.counter)
+        targets[target.target_name] = {}
+        if declaration.min > 0:
+            targets[target.target_name]['min'] = declaration.min
+
+        if declaration.max > 0:
+            targets[target.target_name]['max'] = declaration.max
+
+        if len(declaration.counter) > 0:
+            targets[target.target_name]['counter'] = declaration.counter
+            counters.append(declaration.counter)
+
+        if target_properties is not None:
+            targets[target.target_name]['properties'] = target_properties
+        
 
     if declarationType == 'WhenStatement':
         # Find left and right operands, and operator
         # Check that the operands are declared variables, or counters
         if type(declaration.bool_expr.lhoperand).__name__ == 'str':
             if declaration.bool_expr.lhoperand not in counters and declaration.bool_expr.lhoperand not in symtab:
-                print('ERROR: UNDECLARED IDENTIFIER:', declaration.bool_expr.lhoperand)
+                print('ERROR: UNDECLARED IDENTIFIER:',
+                      declaration.bool_expr.lhoperand)
                 exit(1)
 
         lhoperand = declaration.bool_expr.lhoperand
@@ -64,7 +81,8 @@ def handle_declaration_type(declaration, declarationType):
 
         if type(declaration.bool_expr.rhoperand).__name__ == 'str':
             if declaration.bool_expr.rhoperand not in counters and declaration.bool_expr.rhoperand not in symtab:
-                print('ERROR: UNDECLARED IDENTIFIER:', declaration.bool_expr.rhoperand)
+                print('ERROR: UNDECLARED IDENTIFIER:',
+                      declaration.bool_expr.rhoperand)
                 exit(1)
         rhoperand = declaration.bool_expr.rhoperand
 
@@ -76,7 +94,8 @@ def handle_declaration_type(declaration, declarationType):
             },
             'action': declaration.action
         })
-        
+
+
 for decl in model.declarations:
     handle_declaration_type(decl, type(decl).__name__)
 
@@ -90,8 +109,9 @@ output = {
     'conditions': conditions
 }
 
-from backend import json_generator, yaml_generator, xml_generator
-
-json_generator.generate(output, 'a.json')
-yaml_generator.generate(output, 'a.yaml')
-xml_generator.generate(output, 'a.xml')
+if arguments['format'] == 'json':
+    json_generator.generate(output, arguments['output'])
+elif arguments['format'] == 'yaml':
+    yaml_generator.generate(output, arguments['output'])
+else:
+    xml_generator.generate(output, arguments['output'])
