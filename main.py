@@ -9,7 +9,7 @@ ap = argparse.ArgumentParser()
 ap.add_argument("-o", "--output", type=str, default="config",
                 help="Name of the output generated config file, without the extension")
 
-ap.add_argument("-f", "--format", type=str, default="json",
+ap.add_argument("-f", "--format", type=str, default="json", choices=['json', 'yaml', 'yml', 'xml'],
                 help="Format of the generated file. Valid values are: json, yaml, xml")
 arguments = vars(ap.parse_args())
 
@@ -17,8 +17,10 @@ arguments = vars(ap.parse_args())
 FORMAT_FUNCTIONS = {
     'json': json_generator.generate,
     'yaml': yaml_generator.generate,
+    'yml': yaml_generator.generate,
     'xml': xml_generator.generate
 }
+
 
 def main():
     metamodel = metamodel_from_file('model.tx')
@@ -28,7 +30,16 @@ def main():
     output = mp.parse_model()
 
     generate = FORMAT_FUNCTIONS[arguments['format']]
+
+    # Remove the extension from the filename, if the user added it despite the help message
+    try:
+        extension_index = arguments['output'].rindex('.')
+        arguments['output'] = arguments['output'][0:extension_index]
+    except ValueError:
+        pass
+
     generate(output, arguments['output'])
+
 
 if __name__ == '__main__':
     main()
