@@ -23,9 +23,9 @@ TrackObject:
     "track"
         ("min" "=" min=INT)?
         ("max" "=" max=INT)?
-        target = TargetValue
-        target_properties=PropertyDeclaration?
-        ("in" zone=ZoneValue)?
+        target=TargetValue
+        (target_properties=PropertyDeclaration)?
+        ("inzone" zone=ZoneValue)?
         ("incr" counter=ID)?
 ;
 

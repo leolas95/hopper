@@ -40,8 +40,9 @@ class DeclarationParser:
 
             # Get properties of object to track
             target_properties = {}
-            for prop in target.properties.properties:
-                target_properties[prop.property_name] = prop.property_value
+            if target.properties is not None:
+                for prop in target.properties.properties:
+                    target_properties[prop.property_name] = prop.property_value
 
             self.targets[target.target_name] = {}
             if declaration.min > 0:
