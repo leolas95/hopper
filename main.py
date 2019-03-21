@@ -6,6 +6,9 @@ from model_parser import ModelParser
 from backend import json_generator, xml_generator, yaml_generator
 
 ap = argparse.ArgumentParser()
+ap.add_argument("filename", type=str,
+                help="Name or path of the input NAME OF LANGUAGE file")
+
 ap.add_argument("-o", "--output", type=str, default="config",
                 help="Name of the output generated config file, without the extension")
 
@@ -24,14 +27,14 @@ FORMAT_FUNCTIONS = {
 
 def main():
     metamodel = metamodel_from_file('model.tx')
-    model = metamodel.model_from_file('test.dsl')
+    model = metamodel.model_from_file(arguments['filename'])
 
     mp = ModelParser(model)
     output = mp.parse_model()
 
     generate = FORMAT_FUNCTIONS[arguments['format']]
 
-    # Remove the extension from the filename, if the user added it despite the help message
+    # Remove the extension from the output filename, if the user added it despite the help message
     try:
         extension_index = arguments['output'].rindex('.')
         arguments['output'] = arguments['output'][0:extension_index]
