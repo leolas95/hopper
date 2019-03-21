@@ -12,7 +12,7 @@ Declaration:
 ;
 
 DetectActivity:
-    "detect" "activity" activity_name=STRING ("in" zone=ZoneValue)? ("from" camera+=CameraValue[','])?
+    "detect" "activity" activity_name=STRING ("inzone" zone=ZoneValue)? ("from" camera+=CameraValue[','])?
 ;
 
 CameraValue:

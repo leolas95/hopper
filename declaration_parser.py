@@ -75,7 +75,16 @@ class DeclarationParser:
                     print('ERROR: UNDECLARED IDENTIFIER:',
                           declaration.bool_expr.rhoperand)
                     exit(1)
-            rhoperand = declaration.bool_expr.rhoperand
+
+                if declaration.bool_expr.rhoperand in self.symtab:
+                    rhoperand = self.symtab[declaration.bool_expr.rhoperand]
+                else:
+                    rhoperand = declaration.bool_expr.rhoperand
+                
+                if type(rhoperand).__name__ != 'int':
+                    print('ERROR: Right hand side of when statement must evaluate to integer')
+                    exit(1)
+
 
             self.conditions.append({
                 'condition': {
