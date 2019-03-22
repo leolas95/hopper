@@ -58,30 +58,39 @@ class DeclarationParser:
     def parse_when_statement(self, declaration):
         # Find left and right operands, and operator
         # Check that the operands are declared variables, or counters
-        if type(declaration.bool_expr.lhoperand).__name__ == 'str':
-            if declaration.bool_expr.lhoperand not in self.counters and declaration.bool_expr.lhoperand not in self.symtab:
-                print('ERROR: UNDECLARED IDENTIFIER:',
-                      declaration.bool_expr.lhoperand)
-                exit(1)
+        if declaration.bool_expr.lhoperand not in self.counters:
+            print(f'ERROR: Undeclared identifier: {declaration.bool_expr.lhoperand}. ' +
+                  'Left operand of boolean expression must be counter declared in ' +
+                  'track object statement')
+            exit(1)
 
         lhoperand = declaration.bool_expr.lhoperand
         operator = declaration.bool_expr.operator
 
+        # If the right operand is an identifier, it could be either a (int) variable or a counter
         if type(declaration.bool_expr.rhoperand).__name__ == 'str':
+            # Check if it's declared
             if declaration.bool_expr.rhoperand not in self.counters and declaration.bool_expr.rhoperand not in self.symtab:
-                print('ERROR: UNDECLARED IDENTIFIER:',
-                      declaration.bool_expr.rhoperand)
+                print(f'ERROR: Undeclared identifier: {declaration.bool_expr.rhoperand}. ' +
+                      'Right operand of boolean expression must be counter declared in ' +
+                      'track object statement, or a variable that evaluate to a integer.')
                 exit(1)
 
+            # It's a variable. Get its value and checks that evaluates to an int
             if declaration.bool_expr.rhoperand in self.symtab:
                 rhoperand = self.symtab[declaration.bool_expr.rhoperand]
+                if type(rhoperand).__name__ != 'int':
+                    print(f'ERROR: Variable `{declaration.bool_expr.rhoperand}` ' +
+                          'in right side of boolean expression must evaluate to integer')
+                    exit(1)
+            # It's a counter, so just get its name
             else:
-                rhoperand = declaration.bool_expr.rhoperand
+                index = self.counters.index(declaration.bool_expr.rhoperand)
+                rhoperand = self.counters[index]
 
-            if type(rhoperand).__name__ != 'int':
-                print(
-                    'ERROR: Right hand side of when statement must evaluate to integer')
-                exit(1)
+        # It's just an int
+        elif type(declaration.bool_expr.rhoperand).__name__ == 'int':
+            rhoperand = declaration.bool_expr.rhoperand
 
         self.conditions.append({
             'condition': {
