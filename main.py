@@ -14,6 +14,9 @@ ap.add_argument("-o", "--output", type=str, default="config",
 
 ap.add_argument("-f", "--format", type=str, default="json", choices=['json', 'yaml', 'yml', 'xml'],
                 help="Format of the generated file. Valid values are: json, yaml, xml")
+
+ap.add_argument("-c", "--check", type=str,
+                help="Name of the manifest file against to check the program")
 arguments = vars(ap.parse_args())
 
 
@@ -41,7 +44,53 @@ def main():
     except ValueError:
         pass
 
-    generate(output, arguments['output'])
+    if arguments['check']:
+        # Check that the input program conforms to the manifest file
+
+        # Load and read manifest file
+        import json
+        with open('manifest.json', 'r') as file:
+            manifest = json.load(file)
+
+        # Check activities
+
+        # Check targets
+        for target in output['targets']:
+            if target not in manifest['targets'].keys():
+                print(f"ERROR: Target `{target}` not valid according to manifest file. " +
+                      f"Valid targets are: {list(manifest['targets'].keys())}")
+                exit(1)
+
+            for target_prop in output['targets'][target]['properties']:
+                if target_prop not in manifest['targets'][target]['properties']:
+                    print(f"ERROR: Property `{target_prop}` not valid according to manifest file. " +
+                          f"Valid properties are: {list(manifest['targets'][target]['properties'])}")
+                    exit(1)
+
+            for target_prop, value in output['targets'][target]['properties'].items():
+                if value not in manifest['targets'][target]['accepted_values'][target_prop]:
+                    print(f"ERROR: Property value `{value}` for `{target}` `{target_prop}` not valid according to manifest file. " +
+                          f"Valid values are: {list(manifest['targets'][target]['accepted_values'][target_prop])}")
+                    exit(1)
+        # Check zones
+        # Check cameras
+        
+        # Check actions
+        # The actions are inside the conditions, so loop over them
+        for condition in output['conditions']:
+            action = condition['action']
+            if action not in manifest['actions']:
+                print(f"ERROR: Action `{action}` not valid according to manifest file. " +
+                      f"Valid actions are: {manifest['actions']}")
+                exit(1)
+
+            expected_number_of_arguments = manifest['actions_arguments'][action]['arguments_number']
+            if len(condition['action_args']) != expected_number_of_arguments:
+                print(f"ERROR: Number of arguments for action `{action}` not valid according to manifest file. " +
+                      f"Expected {expected_number_of_arguments}, but got {len(condition['action_args'])}")
+                exit(1)
+    else:
+        generate(output, arguments['output'])
 
 
 if __name__ == '__main__':
