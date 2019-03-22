@@ -34,7 +34,7 @@ def main():
 
     generate = FORMAT_FUNCTIONS[arguments['format']]
 
-    # Remove the extension from the output filename, if the user added it despite the help message
+    # Remove the extension from the output filename if the user added it despite the help message
     try:
         extension_index = arguments['output'].rindex('.')
         arguments['output'] = arguments['output'][0:extension_index]
