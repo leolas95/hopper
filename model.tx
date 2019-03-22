@@ -74,13 +74,17 @@ WhenStatement:
 ;
 
 BooleanExpression:
-    lhoperand=BooleanOperand operator=RelationalOperator rhoperand=BooleanOperand
+    lhoperand=LeftBooleanOperand operator=RelationalOperator rhoperand=RightBooleanOperand
 ;
 
-BooleanOperand:
-    (INT | ID)
+LeftBooleanOperand:
+    ID
 ;
 
 RelationalOperator:
     ">=" | "<=" | ">" | "<" | "==" | "!="
+;
+
+RightBooleanOperand:
+    ID | INT
 ;
