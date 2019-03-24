@@ -1,9 +1,10 @@
 class DeclarationParser:
     # Symbol table to store the name and value of identifiers
     symtab = {}
-    activities = []
+    activities = {}
     targets = {}
     conditions = []
+    activities_conditions = []
     counters = []
 
     def __init__(self):
@@ -12,20 +13,72 @@ class DeclarationParser:
     def parse_variable_declaration(self, declaration):
         self.symtab[declaration.name] = declaration.value
 
-    def parse_detect_activity(self, declaration):
-        for camera in declaration.camera:
-            # If identifier is found, retrieve its entry from the symtab
+    def parse_cameras(self, cameras):
+        result = {}
+        for camera in cameras:
+            # If not a declaration literal, is an ID
             if type(camera).__name__ != 'CameraDeclaration':
-
                 if camera not in self.symtab:
-                    print('ERROR: UNDEFINED VARIABLE:', camera)
+                    print('ERROR: Undefined camera:', camera)
                     exit(1)
 
+                # Check that the type is a camera
                 if type(self.symtab[camera]).__name__ != 'CameraDeclaration':
-                    print('ERROR: INCOMPATIBLE TYPE: expecting CameraDeclaration, but found:', type(
+                    print('ERROR: Incompatible types: expecting CameraDeclaration, but found:', type(
                         self.symtab[camera]).__name__)
                     exit(1)
-        self.activities.append(declaration.activity_name)
+
+                cam = self.symtab[camera]
+            else:
+                cam = camera
+
+            if type(cam.type).__name__ == 'IpCamera':
+                if 'ip' not in result:
+                    result['ip'] = []
+                result['ip'].append(cam.type.ip.ip)
+
+            elif type(cam.type).__name__ == 'NamedCamera':
+                if 'name' not in result:
+                    result['name'] = []
+                result['name'].append(cam.type.name)
+
+            elif type(cam.type).__name__ == 'NumberedCamera':
+                if 'number' not in result:
+                    result['number'] = []
+                result['number'].append(cam.type.number)
+
+        return result
+
+    def parse_zones(self, zones):
+        result = []
+        for zone in zones:
+            if type(zone).__name__ != 'ZoneDeclaration':
+                if zone not in self.symtab:
+                    print('ERROR: Undefined zone:', zone)
+                    exit(1)
+
+                # TODO: Uncomment when bug in grammar is fixed
+                # if type(self.symtab[zone]).__name__ != 'ZoneDeclaration':
+                #     print('ERROR: Incompatible types: expecting ZoneDeclaration, but found:', type(
+                #         self.symtab[zone]).__name__)
+                #     exit(1)
+
+                value = self.symtab[zone]
+            else:
+                value = zone.zone
+
+            result.append(value)
+
+        return result
+
+    def parse_detect_activity(self, declaration):
+        self.activities[declaration.activity_name] = {}
+        self.activities[declaration.activity_name]['cameras'] = self.parse_cameras(
+            declaration.cameras)
+
+        if len(declaration.zones) > 0:
+            self.activities[declaration.activity_name]['zones'] = self.parse_zones(
+                declaration.zones)
 
     def parse_track_object(self, declaration):
         if type(declaration.target).__name__ != 'TargetDeclaration':
@@ -54,6 +107,10 @@ class DeclarationParser:
 
         if target_properties is not None:
             self.targets[target.target_name]['properties'] = target_properties
+
+        if len(declaration.zones) > 0:
+            self.targets[target.target_name]['zones'] = self.parse_zones(
+                declaration.zones)
 
     def parse_when_statement(self, declaration):
         # Find left and right operands, and operator
@@ -105,7 +162,14 @@ class DeclarationParser:
             'action_args': declaration.arguments
         })
 
-    # TODO: Split into functions for each declaration type
+
+    def parse_on_statement(self, declaration):
+        self.activities_conditions.append({
+            'activity': declaration.activity_name,
+            'action': declaration.action,
+            'action_args': declaration.arguments
+        })
+    
     def parse_declaration(self, declaration, declaration_type):
         # When variable declaration is found, store it in the symtab
         if declaration_type == 'VariableDeclaration':
@@ -120,8 +184,13 @@ class DeclarationParser:
         if declaration_type == 'WhenStatement':
             self.parse_when_statement(declaration)
 
+        if declaration_type == 'OnStatement':
+            self.parse_on_statement(declaration)
+
     def get_results(self):
         return {
             'targets': self.targets,
-            'conditions': self.conditions
+            'conditions': self.conditions,
+            'activities_conditions': self.activities_conditions,
+            'activities': self.activities
         }
