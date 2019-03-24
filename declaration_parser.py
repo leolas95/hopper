@@ -3,7 +3,7 @@ class DeclarationParser:
     symtab = {}
     activities = {}
     targets = {}
-    conditions = []
+    targets_conditions = []
     activities_conditions = []
     counters = []
 
@@ -73,8 +73,10 @@ class DeclarationParser:
 
     def parse_detect_activity(self, declaration):
         self.activities[declaration.activity_name] = {}
-        self.activities[declaration.activity_name]['cameras'] = self.parse_cameras(
-            declaration.cameras)
+
+        if len(declaration.cameras) > 0:
+            self.activities[declaration.activity_name]['cameras'] = self.parse_cameras(
+                declaration.cameras)
 
         if len(declaration.zones) > 0:
             self.activities[declaration.activity_name]['zones'] = self.parse_zones(
@@ -82,6 +84,9 @@ class DeclarationParser:
 
     def parse_track_object(self, declaration):
         if type(declaration.target).__name__ != 'TargetDeclaration':
+            if declaration.target not in self.symtab:
+                print(f'ERROR: Undeclared identifier `{declaration.target}`')
+                exit(1)
             # If not a declaration literal, is an ID
             target = self.symtab[declaration.target]
         else:
@@ -152,7 +157,7 @@ class DeclarationParser:
         elif type(rhoperand).__name__ == 'int':
             right_operand = rhoperand
 
-        self.conditions.append({
+        self.targets_conditions.append({
             'condition': {
                 'left_operand': left_operand,
                 'operator': operator,
@@ -190,7 +195,7 @@ class DeclarationParser:
     def get_results(self):
         return {
             'targets': self.targets,
-            'conditions': self.conditions,
+            'targets_conditions': self.targets_conditions,
             'activities_conditions': self.activities_conditions,
             'activities': self.activities
         }
