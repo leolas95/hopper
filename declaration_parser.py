@@ -110,12 +110,15 @@ class DeclarationParser:
             self.targets[target.target_name]['counter'] = declaration.counter
             self.counters.append(declaration.counter)
 
-        if target_properties is not None:
+        if any(target_properties):
             self.targets[target.target_name]['properties'] = target_properties
 
         if len(declaration.zones) > 0:
             self.targets[target.target_name]['zones'] = self.parse_zones(
                 declaration.zones)
+        
+        if len(declaration.cameras) > 0:
+            self.targets[target.target_name]['cameras'] = self.parse_cameras(declaration.cameras)
 
     def parse_when_statement(self, declaration):
         # Find left and right operands, and operator
@@ -164,15 +167,14 @@ class DeclarationParser:
                 'right_operand': right_operand
             },
             'action': declaration.action,
-            'action_args': declaration.arguments
+            'action_arguments': declaration.arguments
         })
-
 
     def parse_on_statement(self, declaration):
         self.activities_conditions.append({
             'activity': declaration.activity_name,
             'action': declaration.action,
-            'action_args': declaration.arguments
+            'action_arguments': declaration.arguments
         })
     
     def parse_declaration(self, declaration, declaration_type):
@@ -193,9 +195,17 @@ class DeclarationParser:
             self.parse_on_statement(declaration)
 
     def get_results(self):
-        return {
-            'targets': self.targets,
-            'targets_conditions': self.targets_conditions,
-            'activities_conditions': self.activities_conditions,
-            'activities': self.activities
-        }
+        result = {}
+        if any(self.targets):
+            result['targets'] = self.targets
+
+        if any(self.targets_conditions):
+            result['targets_conditions'] = self.targets_conditions
+
+        if any(self.activities_conditions):
+            result['activities_conditions'] = self.activities_conditions
+
+        if any(self.activities):
+            result['activities'] = self.activities
+        
+        return result

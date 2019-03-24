@@ -47,6 +47,7 @@ def main():
     if arguments['check']:
         from check import check
         check(output, arguments['check'])
+        print('Everything OK')
     else:
         generate(output, arguments['output'])
 
