@@ -121,3 +121,7 @@ RelationalOperator:
 RightBooleanOperand:
     ID | INT
 ;
+
+Comment:
+    /;.*$/
+;
