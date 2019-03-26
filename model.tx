@@ -34,11 +34,11 @@ TrackObject:
 ;
 
 ZoneValue:
-   ZoneDeclaration | ID
+   ZoneVariableDeclaration | ZoneLiteralDeclaration | ID
 ;
 
 TargetValue:
-    TargetDeclaration | ID
+    TargetVariableDeclaration | TargetLiteralDeclaration | ID
 ;
 
 VariableDeclaration:
@@ -46,7 +46,7 @@ VariableDeclaration:
 ;
 
 VariableValue:
-    (CameraDeclaration | TargetDeclaration | ZoneDeclaration | INT)
+    (CameraDeclaration | TargetVariableDeclaration | ZoneVariableDeclaration | INT)
 ;
 
 CameraDeclaration:
@@ -73,7 +73,11 @@ IpValue:
     ip=/\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b/
 ;
 
-TargetDeclaration:
+TargetVariableDeclaration:
+    "target" target_name=STRING properties=PropertyDeclaration?
+;
+
+TargetLiteralDeclaration:
     target_name=STRING properties=PropertyDeclaration?
 ;
 
@@ -85,8 +89,13 @@ Property:
     property_value=STRING property_name=STRING
 ;
 
-ZoneDeclaration:
+ZoneLiteralDeclaration:
     zone=STRING
+;
+
+ZoneVariableDeclaration:
+    // The z is to differentiate a ZoneDeclaration from a TargetDeclaration
+    "zone" zone=STRING
 ;
 
 OnStatement:

@@ -11,6 +11,7 @@ class DeclarationParser:
         pass
 
     def parse_variable_declaration(self, declaration):
+        print('storing', declaration.value)
         self.symtab[declaration.name] = declaration.value
 
     def parse_cameras(self, cameras):
@@ -52,7 +53,7 @@ class DeclarationParser:
     def parse_zones(self, zones):
         result = []
         for zone in zones:
-            if type(zone).__name__ != 'ZoneDeclaration':
+            if type(zone).__name__ == 'str':
                 if zone not in self.symtab:
                     print('ERROR: Undefined zone:', zone)
                     exit(1)
@@ -63,7 +64,7 @@ class DeclarationParser:
                 #         self.symtab[zone]).__name__)
                 #     exit(1)
 
-                value = self.symtab[zone]
+                value = self.symtab[zone].zone
             else:
                 value = zone.zone
 
@@ -83,7 +84,7 @@ class DeclarationParser:
                 declaration.zones)
 
     def parse_track_object(self, declaration):
-        if type(declaration.target).__name__ != 'TargetDeclaration':
+        if type(declaration.target).__name__ == 'str':
             if declaration.target not in self.symtab:
                 print(f'ERROR: Undeclared identifier `{declaration.target}`')
                 exit(1)
