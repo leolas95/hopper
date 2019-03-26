@@ -1,4 +1,4 @@
 suspect = target "person" with "red" "shirt", "blue" "trousers", "green" "hat"
-zone = zone "lobby"
+lobby = zone "lobby"
 
-track suspect inzone zone, "hall1", "hall2"
+track suspect inzone lobby incr person_counter

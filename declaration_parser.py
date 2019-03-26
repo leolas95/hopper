@@ -10,6 +10,12 @@ class DeclarationParser:
     def __init__(self):
         pass
 
+    def typename(self, x):
+        return type(x).__name__
+
+    def is_identifier(self, x):
+        return self.typename(x) == 'str'
+
     def parse_variable_declaration(self, declaration):
         print('storing', declaration.value)
         self.symtab[declaration.name] = declaration.value
@@ -53,19 +59,22 @@ class DeclarationParser:
     def parse_zones(self, zones):
         result = []
         for zone in zones:
-            if type(zone).__name__ == 'str':
+            # If it's an identifier, look it up in the symbol table
+            if self.is_identifier(zone):
+
+                # Check that it's in symbol table
                 if zone not in self.symtab:
                     print('ERROR: Undefined zone:', zone)
                     exit(1)
 
-                # TODO: Uncomment when bug in grammar is fixed
-                # if type(self.symtab[zone]).__name__ != 'ZoneDeclaration':
-                #     print('ERROR: Incompatible types: expecting ZoneDeclaration, but found:', type(
-                #         self.symtab[zone]).__name__)
-                #     exit(1)
-
-                value = self.symtab[zone].zone
+                value = self.symtab[zone]
+                # Check that it has compatible type
+                if self.typename(value) != 'ZoneVariableDeclaration':
+                    print('ERROR: Incompatible types: expecting ZoneVariableDeclaration, but found:', self.typename(self.symtab[zone]))
+                    exit(1)
+                value = value.zone
             else:
+                # It's a zone literal, so just gets its value
                 value = zone.zone
 
             result.append(value)
@@ -84,12 +93,19 @@ class DeclarationParser:
                 declaration.zones)
 
     def parse_track_object(self, declaration):
-        if type(declaration.target).__name__ == 'str':
+        # If it's an identifier, look it up in the symbol table
+        if self.is_identifier(declaration.target):
+            # Check that it's in symbol table
             if declaration.target not in self.symtab:
                 print(f'ERROR: Undeclared identifier `{declaration.target}`')
                 exit(1)
-            # If not a declaration literal, is an ID
+            
             target = self.symtab[declaration.target]
+
+            # Check that it has compatible type
+            if self.typename(target) != 'TargetVariableDeclaration':
+                print('ERROR: Incompatible types: expecting TargetVariableDeclaration, but found:', self.typename(target))
+                exit(1)
         else:
             # Target declaration literal
             target = declaration.target
@@ -137,7 +153,7 @@ class DeclarationParser:
 
         # If the right operand is an identifier, it could be either a (int) variable or a counter
         rhoperand = declaration.bool_expr.rhoperand
-        if type(rhoperand).__name__ == 'str':
+        if self.is_identifier(rhoperand):
             # Check if it's declared
             if rhoperand not in self.counters and rhoperand not in self.symtab:
                 print(f'ERROR: Undeclared identifier: {rhoperand}. ' +
@@ -148,7 +164,7 @@ class DeclarationParser:
             # It's a variable. Get its value and checks that evaluates to an int
             if rhoperand in self.symtab:
                 right_operand = self.symtab[rhoperand]
-                if type(right_operand).__name__ != 'int':
+                if self.typename(right_operand) != 'int':
                     print(f'ERROR: Variable `{rhoperand}` ' +
                           'in right side of boolean expression must evaluate to integer')
                     exit(1)
@@ -158,7 +174,7 @@ class DeclarationParser:
                 right_operand = self.counters[index]
 
         # It's just an int
-        elif type(rhoperand).__name__ == 'int':
+        elif self.typename(rhoperand) == 'int':
             right_operand = rhoperand
 
         self.targets_conditions.append({
