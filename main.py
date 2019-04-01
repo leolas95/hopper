@@ -54,7 +54,14 @@ def main():
     # Generator is OK, we can continue processing the program
 
     metamodel = metamodel_from_file('model.tx')
-    model = metamodel.model_from_file(arguments['filename'])
+
+    from textx.exceptions import TextXSyntaxError
+
+    try:
+        model = metamodel.model_from_file(arguments['filename'])
+    except TextXSyntaxError as err:
+        print(f'ERROR: line {err.line}, column {err.col}: {err.message}')
+        exit(1)
 
     mp = ModelParser(model)
     output = mp.parse_model()
