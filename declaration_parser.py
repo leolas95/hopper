@@ -12,9 +12,12 @@ def error_undefined_identifier(identifier, friendly_name, explanation=None):
         print(explanation)
     exit(1)
 
+
 def error_incompatible_types(expected, actual):
-    print(f'ERROR: Incompatible types. Expecting {expected}, but found {actual}')
+    print(
+        f'ERROR: Incompatible types. Expecting {expected}, but found {actual}')
     exit(1)
+
 
 class DeclarationParser:
 
@@ -40,7 +43,8 @@ class DeclarationParser:
                 cam = self.symtab[camera]
                 # Check that the type is a camera
                 if typename(cam) != 'CameraDeclaration':
-                    error_incompatible_types('CameraDeclaration', typename(cam))
+                    error_incompatible_types(
+                        'CameraDeclaration', typename(cam))
             else:
                 cam = camera
 
@@ -74,7 +78,8 @@ class DeclarationParser:
                 value = self.symtab[zone]
                 # Check that it has compatible type
                 if typename(value) != 'ZoneVariableDeclaration':
-                    error_incompatible_types('ZoneVariableDeclaration', typename(value))
+                    error_incompatible_types(
+                        'ZoneVariableDeclaration', typename(value))
 
                 value = value.zone
             else:
@@ -107,7 +112,8 @@ class DeclarationParser:
 
             # Check that it has compatible type
             if typename(target) != 'TargetVariableDeclaration':
-                error_incompatible_types('TargetVariableDeclaration', typename(target))
+                error_incompatible_types(
+                    'TargetVariableDeclaration', typename(target))
 
         else:
             # Target declaration literal
