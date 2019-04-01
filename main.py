@@ -3,7 +3,7 @@ import importlib.util
 
 from textx import metamodel_from_file
 
-from model_parser import ModelParser
+from parsers.model_parser import ModelParser
 
 ap = argparse.ArgumentParser()
 ap.add_argument("filename", type=str,

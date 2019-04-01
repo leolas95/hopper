@@ -1,4 +1,4 @@
-from declaration_parser import DeclarationParser
+from .declaration_parser import DeclarationParser
 
 class ModelParser:
     def __init__(self, model):
