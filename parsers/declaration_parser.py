@@ -6,22 +6,9 @@ def is_identifier(x):
     return typename(x) == 'str'
 
 
-def error_undefined_identifier(identifier, friendly_name, explanation=None):
-    print(f'Error: Undefined {friendly_name} identifier `{identifier}`.')
-    if explanation:
-        print(explanation)
-    exit(1)
-
-
-def error_incompatible_types(expected, actual):
-    print(
-        f'ERROR: Incompatible types. Expecting {expected}, but found {actual}')
-    exit(1)
-
-
 class DeclarationParser:
 
-    def __init__(self):
+    def __init__(self, model):
         self.symtab = {}
         self.activities = {}
         self.targets = {}
@@ -29,25 +16,50 @@ class DeclarationParser:
         self.activities_conditions = []
         self.counters = []
 
+        # We only need the model so we can use the _tx_parser.pos_to_linecol
+        # method for error handling
+        self.model = model
+        self.filename = self.model._tx_filename
+
+    def line_col(self, declaration):
+        return self.model._tx_parser.pos_to_linecol(declaration._tx_position)
+
+    def error_undefined_identifier(self, declaration, identifier, friendly_name, explanation=None):
+        line, col = self.line_col(declaration)
+        print(f'Error: {self.filename}: line {line}, col {col}: Undefined ' +
+              f'{friendly_name} identifier `{identifier}`.')
+
+        if explanation:
+            print(explanation)
+        exit(1)
+
+    def error_incompatible_types(self, declaration, expected, actual):
+        line, col = self.line_col(declaration)
+        print(
+            f'ERROR: {self.filename}: line {line}, col {col}: Incompatible types.' +
+            f'Expecting {expected}, but found {actual}')
+        exit(1)
+
     def parse_variable_declaration(self, declaration):
         self.symtab[declaration.name] = declaration.value
 
-    def parse_cameras(self, cameras):
-        result = {}
+    def parse_cameras(self, declaration, cameras):
         for camera in cameras:
             # If not a declaration literal, is an ID
             if is_identifier(camera):
                 if camera not in self.symtab:
-                    error_undefined_identifier(camera, 'camera')
+                    self.error_undefined_identifier(
+                        declaration, camera, 'camera')
 
                 cam = self.symtab[camera]
                 # Check that the type is a camera
                 if typename(cam) != 'CameraDeclaration':
-                    error_incompatible_types(
-                        'CameraDeclaration', typename(cam))
+                    self.error_incompatible_types(declaration,
+                                                  expected='CameraDeclaration', actual=typename(cam))
             else:
                 cam = camera
 
+            result = {}
             cam_typename = typename(cam.type)
             if cam_typename == 'IpCamera':
                 if 'ip' not in result:
@@ -66,20 +78,20 @@ class DeclarationParser:
 
         return result
 
-    def parse_zones(self, zones):
+    def parse_zones(self, declaration, zones):
         result = []
         for zone in zones:
             # If it's an identifier, look it up in the symbol table
             if is_identifier(zone):
                 # Check that it's in symbol table
                 if zone not in self.symtab:
-                    error_undefined_identifier(zone, 'zone')
+                    self.error_undefined_identifier(declaration, zone, 'zone')
 
                 value = self.symtab[zone]
                 # Check that it has compatible type
                 if typename(value) != 'ZoneVariableDeclaration':
-                    error_incompatible_types(
-                        'ZoneVariableDeclaration', typename(value))
+                    self.error_incompatible_types(declaration,
+                                                  expected='ZoneVariableDeclaration', actual=typename(value))
 
                 value = value.zone
             else:
@@ -95,25 +107,26 @@ class DeclarationParser:
 
         if len(declaration.cameras) > 0:
             self.activities[declaration.activity_name]['cameras'] = self.parse_cameras(
-                declaration.cameras)
+                declaration, declaration.cameras)
 
         if len(declaration.zones) > 0:
             self.activities[declaration.activity_name]['zones'] = self.parse_zones(
-                declaration.zones)
+                declaration, declaration.zones)
 
     def parse_track_object(self, declaration):
         # If it's an identifier, look it up in the symbol table
         if is_identifier(declaration.target):
             # Check that it's in symbol table
             if declaration.target not in self.symtab:
-                error_undefined_identifier(declaration.target, 'target')
+                self.error_undefined_identifier(
+                    declaration, declaration.target, 'target')
 
             target = self.symtab[declaration.target]
 
             # Check that it has compatible type
             if typename(target) != 'TargetVariableDeclaration':
-                error_incompatible_types(
-                    'TargetVariableDeclaration', typename(target))
+                self.error_incompatible_types(declaration,
+                                              expected='TargetVariableDeclaration', actual=typename(target))
 
         else:
             # Target declaration literal
@@ -141,20 +154,20 @@ class DeclarationParser:
 
         if len(declaration.zones) > 0:
             self.targets[target.target_name]['zones'] = self.parse_zones(
-                declaration.zones)
+                declaration, declaration.zones)
 
         if len(declaration.cameras) > 0:
             self.targets[target.target_name]['cameras'] = self.parse_cameras(
-                declaration.cameras)
+                declaration, declaration.cameras)
 
     def parse_when_statement(self, declaration):
         # Find left and right operands, and operator
         # Check that the operands are declared variables, or counters
         lhoperand = declaration.bool_expr.lhoperand
         if lhoperand not in self.counters:
-            error_undefined_identifier(lhoperand, 'counter',
-                                       'Left operand of boolean expression must be counter declared in ' +
-                                       'track object statement')
+            self.error_undefined_identifier(declaration, lhoperand, 'counter',
+                                            'Left operand of boolean expression must be counter declared in ' +
+                                            'track object statement')
 
         left_operand = declaration.bool_expr.lhoperand
 
@@ -165,15 +178,17 @@ class DeclarationParser:
         if is_identifier(rhoperand):
             # Check if it's declared
             if rhoperand not in self.counters and rhoperand not in self.symtab:
-                error_undefined_identifier(rhoperand, 'boolean right operand',
-                                           'Right operand of boolean expression must be counter declared in ' +
-                                           'track object statement, or a variable that evaluates to an integer.')
+                self.error_undefined_identifier(declaration, rhoperand, 'boolean right operand',
+                                                'Right operand of boolean expression must be counter declared in ' +
+                                                'track object statement, or a variable that evaluates to an integer.')
 
             # It's a variable. Get its value and checks that evaluates to an int
             if rhoperand in self.symtab:
                 right_operand = self.symtab[rhoperand]
                 if typename(right_operand) != 'int':
-                    print(f'ERROR: Variable `{rhoperand}` ' +
+                    filename = self.filename
+                    line, col = self.line_col(declaration)
+                    print(f'ERROR: {filename}: line {line}, col {col}: Variable `{rhoperand}` ' +
                           'in right side of boolean expression must evaluate to an integer')
                     exit(1)
             # It's a counter, so just get its name
