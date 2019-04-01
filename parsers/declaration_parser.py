@@ -1,11 +1,23 @@
+from enum import Enum
+class Statements(Enum):
+    DETECT_ACTIVITY = 'DetectActivityStatement'
+    TRACK_OBJECT = 'TrackObjectStatement'
+    ON_STATEMENT = 'OnStatement'
+    VARIABLE_DEFINITION = 'VariableDefinition'
+    WHEN_STATEMENT = 'WhenStatement'
+    CAMERA_DECLARATION = 'CameraDeclaration'
+    IP_CAMERA = 'IpCamera'
+    NAMED_CAMERA = 'NamedCamera'
+    NUMBERED_CAMERA = 'NumberedCamera'
+    ZONE_VARIABLE_DECLARATION = 'ZoneVariableDeclaration'
+    TARGET_VARIABLE_DECLARATION = 'TargetVariableDeclaration'
+
 def typename(x):
     return type(x).__name__
 
 
 def is_identifier(x):
-    print(x)
     return typename(x) == 'str'
-
 
 class DeclarationParser:
 
@@ -54,26 +66,26 @@ class DeclarationParser:
 
                 cam = self.symtab[camera]
                 # Check that the type is a camera
-                if typename(cam) != 'CameraDeclaration':
+                if typename(cam) != Statements.CAMERA_DECLARATION.value:
                     self.error_incompatible_types(declaration,
-                                                  expected='CameraDeclaration',
+                                                  expected=Statements.CAMERA_DECLARATION.value,
                                                   actual=typename(cam))
             else:
                 cam = camera
 
             result = {}
             cam_typename = typename(cam.type)
-            if cam_typename == 'IpCamera':
+            if cam_typename == Statements.IP_CAMERA.value:
                 if 'ip' not in result:
                     result['ip'] = []
                 result['ip'].append(cam.type.ip.ip)
 
-            elif cam_typename == 'NamedCamera':
+            elif cam_typename == Statements.NAMED_CAMERA.value:
                 if 'name' not in result:
                     result['name'] = []
                 result['name'].append(cam.type.name)
 
-            elif cam_typename == 'NumberedCamera':
+            elif cam_typename == Statements.NUMBERED_CAMERA.value:
                 if 'number' not in result:
                     result['number'] = []
                 result['number'].append(cam.type.number)
@@ -91,9 +103,9 @@ class DeclarationParser:
 
                 value = self.symtab[zone]
                 # Check that it has compatible type
-                if typename(value) != 'ZoneVariableDeclaration':
+                if typename(value) != Statements.ZONE_VARIABLE_DECLARATION.value:
                     self.error_incompatible_types(declaration,
-                                                  expected='ZoneVariableDeclaration',
+                                                  expected=Statements.ZONE_VARIABLE_DECLARATION.value,
                                                   actual=typename(value))
 
                 value = value.zone
@@ -127,9 +139,9 @@ class DeclarationParser:
             target = self.symtab[declaration.target]
 
             # Check that it has compatible type
-            if typename(target) != 'TargetVariableDeclaration':
+            if typename(target) != Statements.TARGET_VARIABLE_DECLARATION.value:
                 self.error_incompatible_types(declaration,
-                                              expected='TargetVariableDeclaration',
+                                              expected=Statements.TARGET_VARIABLE_DECLARATION.value,
                                               actual=typename(target))
 
         else:
@@ -230,23 +242,20 @@ class DeclarationParser:
 
     def parse_declaration(self, declaration, declaration_type):
         # When variable declaration is found, store it in the symtab
-        if declaration_type == 'VariableDeclaration':
+        if declaration_type == Statements.VARIABLE_DEFINITION.value:
             self.parse_variable_declaration(declaration)
 
-        if declaration_type == 'DetectActivity':
+        if declaration_type == Statements.DETECT_ACTIVITY.value:
             self.parse_detect_activity(declaration)
 
-        if declaration_type == 'TrackObject':
+        if declaration_type == Statements.TRACK_OBJECT.value:
             self.parse_track_object(declaration)
 
-        if declaration_type == 'WhenStatement':
+        if declaration_type == Statements.WHEN_STATEMENT.value:
             self.parse_when_statement(declaration)
 
-        if declaration_type == 'OnStatement':
+        if declaration_type == Statements.ON_STATEMENT.value:
             self.parse_on_statement(declaration)
-
-        if declaration_type == 'Foo':
-            print(declaration.name)
 
     def get_results(self):
         result = {}

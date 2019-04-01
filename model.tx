@@ -3,16 +3,15 @@ Program:
 ;
 
 Declaration:
-    ( DetectActivity
-    | TrackObject
+    ( DetectActivityStatement
+    | TrackObjectStatement
     | OnStatement
-    | VariableDeclaration
+    | VariableDefinition
     | WhenStatement
-    | Foo
     )
 ;
 
-DetectActivity:
+DetectActivityStatement:
     "detect" "activity"
         activity_name=STRING
         ("inzone" zones+=ZoneValue[','])?
@@ -23,7 +22,7 @@ CameraValue:
     CameraDeclaration | Identifier
 ;
 
-TrackObject:
+TrackObjectStatement:
     "track"
         ("min" "=" min=INT)?
         ("max" "=" max=INT)?
@@ -42,7 +41,7 @@ TargetValue:
     TargetVariableDeclaration | TargetLiteralDeclaration | Identifier
 ;
 
-VariableDeclaration:
+VariableDefinition:
     name=Identifier "=" value=VariableValue
 ;
 
@@ -125,10 +124,6 @@ RightBooleanOperand:
 
 Comment:
     /;.*$/
-;
-
-Foo:
-    "hola" name=Identifier
 ;
 
 Identifier:
