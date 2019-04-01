@@ -21,7 +21,7 @@ ap.add_argument("-f", "--format", type=str, required=True,
 ap.add_argument("-c", "--check", type=str, nargs='?', const='manifest.json',
                 help="Name of the manifest file against to check the program")
 
-arguments = vars(ap.parse_args())
+ARGUMENTS = vars(ap.parse_args())
 
 
 def backend_exists(backend):
@@ -33,12 +33,12 @@ def generator_exists(generator):
 
 
 def main():
-    backend_name = f"backend.{arguments['backend']}"
+    backend_name = f"backend.{ARGUMENTS['backend']}"
     if not backend_exists(backend_name):
-        print(f"ERROR: Specified backend `{arguments['backend']}` does not exists")
+        print(f"ERROR: Specified backend `{ARGUMENTS['backend']}` does not exists")
         exit(1)
 
-    generator_name = f"{backend_name}.generators.{arguments['format']}_generator"
+    generator_name = f"{backend_name}.generators.{ARGUMENTS['format']}_generator"
     if not generator_exists(generator_name):
         print(f"ERROR: Specified generator `{generator_name}` does not exists")
         exit(1)
@@ -58,7 +58,7 @@ def main():
     from textx.exceptions import TextXSyntaxError
 
     try:
-        model = metamodel.model_from_file(arguments['filename'])
+        model = metamodel.model_from_file(ARGUMENTS['filename'])
     except TextXSyntaxError as err:
         print(f'ERROR: line {err.line}, column {err.col}: {err.message}')
         exit(1)
@@ -68,17 +68,17 @@ def main():
 
     # Remove the extension from the output filename if the user added it despite the help message
     try:
-        extension_index = arguments['output'].rindex('.')
-        arguments['output'] = arguments['output'][0:extension_index]
+        extension_index = ARGUMENTS['output'].rindex('.')
+        ARGUMENTS['output'] = ARGUMENTS['output'][0:extension_index]
     except ValueError:
         pass
 
-    if arguments['check']:
+    if ARGUMENTS['check']:
         from check import check
-        check(output, arguments['check'])
+        check(output, ARGUMENTS['check'])
         print('Everything OK')
     else:
-        generator_module.generate(output, arguments['output'])
+        generator_module.generate(output, ARGUMENTS['output'])
 
 
 if __name__ == '__main__':

@@ -26,7 +26,7 @@ class DeclarationParser:
 
     def error_undefined_identifier(self, declaration, identifier, friendly_name, explanation=None):
         line, col = self.line_col(declaration)
-        print(f'Error: {self.filename}: line {line}, col {col}: Undefined ' +
+        print(f'Error: {self.filename}: line {line}, column {col}: Undefined ' +
               f'{friendly_name} identifier `{identifier}`.')
 
         if explanation:
@@ -36,7 +36,7 @@ class DeclarationParser:
     def error_incompatible_types(self, declaration, expected, actual):
         line, col = self.line_col(declaration)
         print(
-            f'ERROR: {self.filename}: line {line}, col {col}: Incompatible types.' +
+            f'ERROR: {self.filename}: line {line}, column {col}: Incompatible types.' +
             f'Expecting {expected}, but found {actual}')
         exit(1)
 
@@ -55,7 +55,8 @@ class DeclarationParser:
                 # Check that the type is a camera
                 if typename(cam) != 'CameraDeclaration':
                     self.error_incompatible_types(declaration,
-                                                  expected='CameraDeclaration', actual=typename(cam))
+                                                  expected='CameraDeclaration',
+                                                  actual=typename(cam))
             else:
                 cam = camera
 
@@ -91,7 +92,8 @@ class DeclarationParser:
                 # Check that it has compatible type
                 if typename(value) != 'ZoneVariableDeclaration':
                     self.error_incompatible_types(declaration,
-                                                  expected='ZoneVariableDeclaration', actual=typename(value))
+                                                  expected='ZoneVariableDeclaration',
+                                                  actual=typename(value))
 
                 value = value.zone
             else:
@@ -105,11 +107,11 @@ class DeclarationParser:
     def parse_detect_activity(self, declaration):
         self.activities[declaration.activity_name] = {}
 
-        if len(declaration.cameras) > 0:
+        if declaration.cameras:
             self.activities[declaration.activity_name]['cameras'] = self.parse_cameras(
                 declaration, declaration.cameras)
 
-        if len(declaration.zones) > 0:
+        if declaration.zones:
             self.activities[declaration.activity_name]['zones'] = self.parse_zones(
                 declaration, declaration.zones)
 
@@ -126,7 +128,8 @@ class DeclarationParser:
             # Check that it has compatible type
             if typename(target) != 'TargetVariableDeclaration':
                 self.error_incompatible_types(declaration,
-                                              expected='TargetVariableDeclaration', actual=typename(target))
+                                              expected='TargetVariableDeclaration',
+                                              actual=typename(target))
 
         else:
             # Target declaration literal
@@ -145,18 +148,18 @@ class DeclarationParser:
         if declaration.max > 0:
             self.targets[target.target_name]['max'] = declaration.max
 
-        if len(declaration.counter) > 0:
+        if declaration.counter:
             self.targets[target.target_name]['counter'] = declaration.counter
             self.counters.append(declaration.counter)
 
         if any(target_properties):
             self.targets[target.target_name]['properties'] = target_properties
 
-        if len(declaration.zones) > 0:
+        if declaration.zones:
             self.targets[target.target_name]['zones'] = self.parse_zones(
                 declaration, declaration.zones)
 
-        if len(declaration.cameras) > 0:
+        if declaration.cameras:
             self.targets[target.target_name]['cameras'] = self.parse_cameras(
                 declaration, declaration.cameras)
 
@@ -165,8 +168,11 @@ class DeclarationParser:
         # Check that the operands are declared variables, or counters
         lhoperand = declaration.bool_expr.lhoperand
         if lhoperand not in self.counters:
-            self.error_undefined_identifier(declaration, lhoperand, 'counter',
-                                            'Left operand of boolean expression must be counter declared in ' +
+            self.error_undefined_identifier(declaration,
+                                            lhoperand,
+                                            'counter',
+                                            'Left operand of boolean expression' +
+                                            'must be counter declared in ' +
                                             'track object statement')
 
         left_operand = declaration.bool_expr.lhoperand
@@ -178,9 +184,13 @@ class DeclarationParser:
         if is_identifier(rhoperand):
             # Check if it's declared
             if rhoperand not in self.counters and rhoperand not in self.symtab:
-                self.error_undefined_identifier(declaration, rhoperand, 'boolean right operand',
-                                                'Right operand of boolean expression must be counter declared in ' +
-                                                'track object statement, or a variable that evaluates to an integer.')
+                self.error_undefined_identifier(declaration,
+                                                rhoperand,
+                                                'boolean right operand',
+                                                'Right operand of boolean' +
+                                                'expression must be counter declared in ' +
+                                                'track object statement, or a' +
+                                                'variable that evaluates to an integer.')
 
             # It's a variable. Get its value and checks that evaluates to an int
             if rhoperand in self.symtab:

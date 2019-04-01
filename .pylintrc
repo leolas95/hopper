@@ -267,6 +267,7 @@ good-names=i,
            ap,
            mp,
            dp,
+           x
 
 # Include a hint for the correct naming format with invalid-name.
 include-naming-hint=yes
@@ -524,7 +525,10 @@ exclude-protected=_asdict,
                   _fields,
                   _replace,
                   _source,
-                  _make
+                  _make,
+                  _tx_filename,
+                  _tx_parser,
+                  _tx_position
 
 # List of valid names for the first argument in a class method.
 valid-classmethod-first-arg=cls
