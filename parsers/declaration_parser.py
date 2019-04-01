@@ -3,6 +3,7 @@ def typename(x):
 
 
 def is_identifier(x):
+    print(x)
     return typename(x) == 'str'
 
 
@@ -243,6 +244,9 @@ class DeclarationParser:
 
         if declaration_type == 'OnStatement':
             self.parse_on_statement(declaration)
+
+        if declaration_type == 'Foo':
+            print(declaration.name)
 
     def get_results(self):
         result = {}

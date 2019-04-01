@@ -8,6 +8,7 @@ Declaration:
     | OnStatement
     | VariableDeclaration
     | WhenStatement
+    | Foo
     )
 ;
 
@@ -19,7 +20,7 @@ DetectActivity:
 ;
 
 CameraValue:
-    CameraDeclaration | ID
+    CameraDeclaration | Identifier
 ;
 
 TrackObject:
@@ -30,19 +31,19 @@ TrackObject:
         (target_properties=PropertyDeclaration)?
         ("inzone" zones+=ZoneValue[','])?
         ("from" cameras+=CameraValue[','])?
-        ("incr" counter=ID)?
+        ("incr" counter=Identifier)?
 ;
 
 ZoneValue:
-   ZoneVariableDeclaration | ZoneLiteralDeclaration | ID
+   ZoneVariableDeclaration | ZoneLiteralDeclaration | Identifier
 ;
 
 TargetValue:
-    TargetVariableDeclaration | TargetLiteralDeclaration | ID
+    TargetVariableDeclaration | TargetLiteralDeclaration | Identifier
 ;
 
 VariableDeclaration:
-    name=ID "=" value=VariableValue
+    name=Identifier "=" value=VariableValue
 ;
 
 VariableValue:
@@ -99,11 +100,11 @@ ZoneVariableDeclaration:
 ;
 
 OnStatement:
-    "on" "activity" activity_name=STRING "do" action=ID "(" arguments*=STRING[","] ")"
+    "on" "activity" activity_name=STRING "do" action=Identifier "(" arguments*=STRING[","] ")"
 ;
 
 WhenStatement:
-    "when" bool_expr=BooleanExpression "do" action=ID "(" arguments*=STRING[","] ")"
+    "when" bool_expr=BooleanExpression "do" action=Identifier "(" arguments*=STRING[","] ")"
 ;
 
 BooleanExpression:
@@ -111,7 +112,7 @@ BooleanExpression:
 ;
 
 LeftBooleanOperand:
-    ID
+    Identifier
 ;
 
 RelationalOperator:
@@ -119,9 +120,17 @@ RelationalOperator:
 ;
 
 RightBooleanOperand:
-    ID | INT
+    Identifier | INT
 ;
 
 Comment:
     /;.*$/
+;
+
+Foo:
+    "hola" name=Identifier
+;
+
+Identifier:
+    /[a-zA-Z]([-a-zA-Z0-9])*/
 ;
