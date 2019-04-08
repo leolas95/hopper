@@ -1,0 +1,3 @@
+textX==1.8.0
+dicttoxml==1.7.4
+PyYAML==5.1
