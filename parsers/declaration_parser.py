@@ -1,4 +1,6 @@
 from enum import Enum
+
+
 class Statements(Enum):
     DETECT_ACTIVITY = 'DetectActivityStatement'
     TRACK_OBJECT = 'TrackObjectStatement'
@@ -12,12 +14,14 @@ class Statements(Enum):
     ZONE_VARIABLE_DECLARATION = 'ZoneVariableDeclaration'
     TARGET_VARIABLE_DECLARATION = 'TargetVariableDeclaration'
 
+
 def typename(x):
     return type(x).__name__
 
 
 def is_identifier(x):
     return typename(x) == 'str'
+
 
 class DeclarationParser:
 
@@ -154,27 +158,32 @@ class DeclarationParser:
             for prop in target.properties.properties:
                 target_properties[prop.property_name] = prop.property_value
 
-        self.targets[target.target_name] = {}
+        if self.targets.get(target.target_name) is None:
+            self.targets[target.target_name] = []
+
+        new_target = {}
         if declaration.min > 0:
-            self.targets[target.target_name]['min'] = declaration.min
+            new_target['min'] = declaration.min
 
         if declaration.max > 0:
-            self.targets[target.target_name]['max'] = declaration.max
+            new_target['max'] = declaration.max
 
         if declaration.counter:
-            self.targets[target.target_name]['counter'] = declaration.counter
+            new_target['counter'] = declaration.counter
             self.counters.append(declaration.counter)
 
         if any(target_properties):
-            self.targets[target.target_name]['properties'] = target_properties
+            new_target['properties'] = target_properties
 
         if declaration.zones:
-            self.targets[target.target_name]['zones'] = self.parse_zones(
+            new_target['zones'] = self.parse_zones(
                 declaration, declaration.zones)
 
         if declaration.cameras:
-            self.targets[target.target_name]['cameras'] = self.parse_cameras(
+            new_target['cameras'] = self.parse_cameras(
                 declaration, declaration.cameras)
+
+        self.targets[target.target_name].append(new_target)
 
     def parse_when_statement(self, declaration):
         # Find left and right operands, and operator
