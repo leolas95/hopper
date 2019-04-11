@@ -57,6 +57,7 @@ class DeclarationParser:
         self.symtab[declaration.name] = declaration.value
 
     def parse_cameras(self, declaration, cameras):
+        result = {}
         for camera in cameras:
             # If not a declaration literal, is an ID
             if is_identifier(camera):
@@ -73,7 +74,6 @@ class DeclarationParser:
             else:
                 cam = camera
 
-            result = {}
             cam_typename = typename(cam.type)
             if cam_typename == Statements.IP_CAMERA.value:
                 if 'ip' not in result:
