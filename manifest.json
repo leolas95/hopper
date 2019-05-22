@@ -1,5 +1,6 @@
 {
     "activities":[
+      "walking",
       "running"
     ],
     "targets":{
